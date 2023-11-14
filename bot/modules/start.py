@@ -1,9 +1,16 @@
 from bot.util import new_cmd, new_inline
 from telethon import Button, events
-from .db import set_team, get_chat_team, get_team_points
+from .db import set_team, get_chat_team, get_team_points, new_qr_scan
 
 @new_cmd(pattern="start")
 async def start_cmd(e):
+    team = await get_chat_team(e.chat_id)
+    if team:
+        await e.reply("Welcome to **CODE QUEST!**\n\nYour mission, should you choose to accept it, is to locate the hidden QR codes scattered across the campus. Keep your wits about you, as the locations of the codes are shrouded in mystery. To help you on your quest, be sure to stay tuned to Telegram for clues and hints.\n\nYour team name is **{}**\n\nQrPoints: **{}**".format(team, await get_team_points(team)),
+        buttons=[
+            [Button.inline("Start Quest", b"start_quest")]
+        ])
+        return
     await e.reply("Welcome to **CODE QUEST!**\n\nYour mission, should you choose to accept it, is to locate the hidden QR codes scattered across the campus. Keep your wits about you, as the locations of the codes are shrouded in mystery. To help you on your quest, be sure to stay tuned to Telegram for clues and hints.",
     buttons=[
         [Button.inline("Set Team Name", b"set_team_name")]
@@ -65,3 +72,35 @@ async def set_team_name(e):
         else:
             await conv.send_message("Oops, let's try again.")
             await set_team_name(e)
+
+
+@new_cmd(pattern="qr")
+async def qr_cmd(e):
+    try:
+        hexCode = e.text.split(" ")[1]
+    except IndexError:
+        await e.reply("Please provide the unique QR code.")
+        return
+    team = await get_chat_team(e.chat_id)
+    if not team:
+        await e.reply("You have not Entered your team name yet. Use `/start` to set one.")
+        return
+    scan = await new_qr_scan(hexCode, team)
+    if scan == -1:
+        await e.reply("Sorry, that QR code is invalid.")
+
+    if scan == 10:
+        await e.reply("Congratulations! You are the first team to scan this QR code. You have been awarded **10** points.")
+        return
+    
+    if scan == 8:
+        await e.reply("Congo! You are the second team to scan this QR code. You have been awarded **8** points.")
+        return
+    
+    if scan == 6:
+        await e.reply("Good job! You are the third team to scan this QR code. You have been awarded **6** points.")
+        return
+    
+    if scan == 5:
+        await e.reply("Ouch! Top 3 teams have already scanned this QR code. You have been awarded **5** points.")
+        return
