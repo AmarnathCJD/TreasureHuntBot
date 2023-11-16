@@ -1,5 +1,5 @@
 {
-    "https://tx.me/CodeQuestBot?start=qr_icsob": 1,
+    "https://tx.me/CodeQuestBot?start=qr_icsob #given at start, no need of scan": 1,
     "https://tx.me/CodeQuestBot?start=qr_vzmio": 2,
     "https://tx.me/CodeQuestBot?start=qr_wmyxt": 3,
     "https://tx.me/CodeQuestBot?start=qr_lmyzx": 4,

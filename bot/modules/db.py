@@ -1,91 +1,165 @@
+from pymongo import MongoClient
 
-POINTS = [10, 8, 6, 5]
+mdb = MongoClient(
+    "mongodb+srv://user:user@cluster0.1vyhuye.mongodb.net/?retryWrites=true&w=majority"
+)
 
-from firebase_admin import firestore, credentials
-import firebase_admin
-import time
+db = mdb["mvh"]
 
-cred = credentials.Certificate("./serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+print(list(db["teams"].find()))
+
+
+def reset_qrs():
+    db["qr"].delete_one({"qr_type": 1})
+    db["qr"].update_many({}, {"$set": {"teams": []}})
+
+
+def reset_teams():
+    db["teams"].update_many({}, {"$set": {"points": 0, "last_qr_type": 0}})
+
+def purge_teams():
+    db["teams"].delete_many({})
+
+
+def is_team_exists(team_name):
+    team = db["teams"].find_one({"team_name": team_name})
+    if team:
+        return True, team["chat_id"]
+    else:
+        return False, None
+
+
+def add_member_to_team(team_name, chat_id):
+    db["teams"].update_one({"team_name": team_name}, {"$push": {"members": chat_id}})
+
+
+def add_new_team(chat_id, team_name):
+    db["teams"].update_one(
+        {"chat_id": chat_id},
+        {"$set": {"team_name": team_name, "points": 0}},
+        upsert=True,
+    )
+
+
+def get_chat_team(chat_id):
+    team = db["teams"].find_one({"chat_id": chat_id})
+    if team:
+        return team
+    else:
+        for team in db["teams"].find():
+            if chat_id in team["members"]:
+                return team
+
+        return None
+
+
+def remove_member_from_team(chat_id):
+    db["teams"].update_one({"members": chat_id}, {"$pull": {"members": chat_id}})
+
+
+def get_team_name(chat_id):
+    team = db["teams"].find_one({"chat_id": chat_id})
+    if team:
+        return team["team_name"]
+    else:
+        for team in db["teams"].find():
+            if chat_id in team["members"]:
+                return team["team_name"]
+
+        return None
+
+
+def get_team_points(team_name):
+    team = db["teams"].find_one({"team_name": team_name})
+    if team:
+        return team["points"]
+    else:
+        return None
+
+
+def edit_chat_team(chat_id, new_name):
+    db["teams"].update_one(
+        {"chat_id": chat_id}, {"$set": {"team_name": new_name}}, upsert=True
+    )
+
+
+def increment_team_points(team_name, points):
+    db["teams"].update_one(
+        {"team_name": team_name}, {"$inc": {"points": points}}, upsert=True
+    )
+
+
+def add_new_qr(qr_id, qr_type):
+    db["qr"].update_one(
+        {"qr_id": qr_id}, {"$set": {"qr_type": qr_type, "teams": []}}, upsert=True
+    )
+
+
+def add_new_qr_team_return_points(qr_id, team_name):
+    qr = db["qr"].find_one({"qr_id": qr_id})
+    if qr:
+        if team_name in qr["teams"]:
+            return -2, qr["qr_type"]
+        else:
+            if get_team_last_scan_qr_type(team_name) + 1 != qr["qr_type"]:
+                return -3, qr["qr_type"]
+            db["qr"].update_one({"qr_id": qr_id}, {"$push": {"teams": team_name}})
+            qr = db["qr"].find_one({"qr_id": qr_id})
+            set_team_last_scan_qr_type(team_name, qr["qr_type"])
+            teams = qr["teams"]
+            if len(teams) == 1:
+                increment_team_points(team_name, 10)
+                return 10, qr["qr_type"]
+            elif len(teams) == 2:
+                increment_team_points(team_name, 8)
+                return 8, qr["qr_type"]
+            elif len(teams) == 3:
+                increment_team_points(team_name, 6)
+                return 6, qr["qr_type"]
+            else:
+                increment_team_points(team_name, 5)
+                return 5, qr["qr_type"]
+    else:
+        return -1, 1
+
+
+def get_qr_type(qr_id):
+    qr = db["qr"].find_one({"qr_id": qr_id})
+    if qr:
+        return qr["qr_type"]
+    else:
+        return None
+
+
+def get_qr_teams(qr_id):
+    qr = db["qr"].find_one({"qr_id": qr_id})
+    if qr:
+        return qr["teams"]
+    else:
+        return None
+
 
 def generate_leaderboard():
-    pass
+    return db["teams"].find().sort("points", -1)
 
-async def set_team(name, chat_id):
-    doc_ref = db.collection("TeamNames").document("tName")
-    doc_ref.set({
-        str(chat_id) : name
-    },merge=True)
 
-    doc_ref = db.collection("Teams").document(name)
-    doc_ref.set({
-        'Team Created': time.strftime("%H:%M:%S", time.localtime()),
-        'Points' : 0   
-    },merge=True)
+def get_all_qr():
+    return db["qr"].find()
 
-async def get_chat_team(chat_id):
-    doc_ref = db.collection("TeamNames").document("tName")
-    doc = doc_ref.get()
-    if doc.exists and str(chat_id) in doc.to_dict():
-        return doc.to_dict()[str(chat_id)]
-    else:
-        return None
-    
-async def get_team_points(team_name):
-    doc_ref = db.collection("Teams").document(team_name)
-    doc = doc_ref.get()
-    if doc.exists and "Points" in doc.to_dict():
-        return doc.to_dict()["Points"]
-    else:
-        return None
-    
-async def edit_chat_team(chat_id, new_name):
-    doc_ref = db.collection("TeamNames").document("tName")
-    doc_ref.set({
-        str(chat_id) : new_name
-    },merge=True)
 
-async def update_team_points(team_name, points):
-    doc_ref = db.collection("Teams").document(team_name)
-    doc_ref.set({
-        'Points' : points
-    },merge=True)
+def set_team_last_scan_qr_type(team_name, qr_type):
+    db["teams"].update_one(
+        {"team_name": team_name}, {"$set": {"last_qr_type": qr_type}}, upsert=True
+    )
 
-async def add_team_points(team_name, points):
-    doc_ref = db.collection("Teams").document(team_name)
-    doc_ref.set({
-        'Points' : firestore.Increment(points)
-    },merge=True)
 
-async def set_new_qr(qr_id, qr_type):
-    doc_ref = db.collection("QR").document(qr_id)
-    doc_ref.set({
-        'Type' : qr_type,
-        'Teams' : []
-    },merge=True)
-
-async def new_qr_scan(qr_id, team_name) -> [int, str]:
-    doc_ref = db.collection("QR").document(qr_id)
-    doc = doc_ref.get()
-    print(doc.to_dict())
-    if doc.exists:
-        doc_data = doc.to_dict()
-        doc_ref.set({
-            'Teams' : firestore.ArrayUnion([team_name])
-        }, merge=True)
-        teams = doc_data.get("Teams")
-        qr_type = doc_data.get("Type")
-        if teams:
-            if team_name in teams:
-                ranking = teams.index(team_name)
-                if ranking < len(POINTS):
-                    return POINTS[ranking], qr_type
-                else:
-                    return POINTS[-1], qr_type
-            else:
-                return -1, qr_type
+def get_team_last_scan_qr_type(team_name):
+    team = db["teams"].find_one({"team_name": team_name})
+    if team:
+        t = team.get("last_qr_type", 1)
+        if t != 0:
+            return t
         else:
-            return -1, qr_type
+            return 1
     else:
-        return -1, None
+        return 1
