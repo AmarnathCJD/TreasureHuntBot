@@ -1,10 +1,10 @@
-
 from . import bot
 from telethon import events
 import logging
 from os import path, listdir
 
 LOG = logging.getLogger("bot.util")
+
 
 def new_cmd(**args):
     args["pattern"] = "(?i)^[!/-]" + args["pattern"] + "(?: |$)(.*)"
@@ -18,6 +18,7 @@ def new_cmd(**args):
 
     return decorator
 
+
 def new_inline(**args):
     def decorator(func):
         async def wrapper(event):
@@ -28,11 +29,12 @@ def new_inline(**args):
 
     return decorator
 
+
 def module_loader():
     from pathlib import Path
     import importlib
     import sys
-    
+
     for file in listdir(path.dirname(__file__) + "/modules"):
         name = "bot.modules." + Path(file).stem
         if "__" in name:

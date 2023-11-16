@@ -1,0 +1,12 @@
+{
+    "https://tx.me/CodeQuestBot?start=qr_icsob": 1,
+    "https://tx.me/CodeQuestBot?start=qr_vzmio": 2,
+    "https://tx.me/CodeQuestBot?start=qr_wmyxt": 3,
+    "https://tx.me/CodeQuestBot?start=qr_lmyzx": 4,
+    "https://tx.me/CodeQuestBot?start=qr_eittn": 5,
+    "https://tx.me/CodeQuestBot?start=qr_rhjvk": 6,
+    "https://tx.me/CodeQuestBot?start=qr_cyjrk": 7,
+    "https://tx.me/CodeQuestBot?start=qr_epnto": 8,
+    "https://tx.me/CodeQuestBot?start=qr_yssxk": 9,
+    "https://tx.me/CodeQuestBot?start=qr_fstmi": 10
+}

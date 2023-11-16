@@ -27,7 +27,7 @@ async def set_team(name, chat_id):
 async def get_chat_team(chat_id):
     doc_ref = db.collection("TeamNames").document("tName")
     doc = doc_ref.get()
-    if doc.exists:
+    if doc.exists and str(chat_id) in doc.to_dict():
         return doc.to_dict()[str(chat_id)]
     else:
         return None
@@ -35,8 +35,8 @@ async def get_chat_team(chat_id):
 async def get_team_points(team_name):
     doc_ref = db.collection("Teams").document(team_name)
     doc = doc_ref.get()
-    if doc.exists:
-        return doc.to_dict()['Points']
+    if doc.exists and "Points" in doc.to_dict():
+        return doc.to_dict()["Points"]
     else:
         return None
     
@@ -58,24 +58,34 @@ async def add_team_points(team_name, points):
         'Points' : firestore.Increment(points)
     },merge=True)
 
-async def new_qr_scan(qr_id, team_name) -> int:
+async def set_new_qr(qr_id, qr_type):
+    doc_ref = db.collection("QR").document(qr_id)
+    doc_ref.set({
+        'Type' : qr_type,
+        'Teams' : []
+    },merge=True)
+
+async def new_qr_scan(qr_id, team_name) -> [int, str]:
     doc_ref = db.collection("QR").document(qr_id)
     doc = doc_ref.get()
+    print(doc.to_dict())
     if doc.exists:
+        doc_data = doc.to_dict()
         doc_ref.set({
             'Teams' : firestore.ArrayUnion([team_name])
         }, merge=True)
-        teams = doc_ref.to_dict().get("Teams")
+        teams = doc_data.get("Teams")
+        qr_type = doc_data.get("Type")
         if teams:
             if team_name in teams:
                 ranking = teams.index(team_name)
                 if ranking < len(POINTS):
-                    return POINTS[ranking]
+                    return POINTS[ranking], qr_type
                 else:
-                    return POINTS[-1] 
+                    return POINTS[-1], qr_type
             else:
-                return -1
+                return -1, qr_type
         else:
-            return -1
+            return -1, qr_type
     else:
-        return -1
+        return -1, None
