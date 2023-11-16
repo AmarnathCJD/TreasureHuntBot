@@ -6,9 +6,6 @@ mdb = MongoClient(
 
 db = mdb["mvh"]
 
-print(list(db["teams"].find()))
-
-
 def reset_qrs():
     db["qr"].delete_one({"qr_type": 1})
     db["qr"].update_many({}, {"$set": {"teams": []}})

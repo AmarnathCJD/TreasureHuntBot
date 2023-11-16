@@ -18,6 +18,7 @@ from .qr_events import onNewQR
 # reset_qrs()
 # purge_teams()
 
+
 @new_cmd(pattern="start")
 async def start_cmd(e):
     if "qr_" in e.text:
@@ -206,45 +207,3 @@ async def check_points(e):
         )
     else:
         await e.edit("You have not set a team name yet. Use `/start` to set one.")
-
-
-@new_cmd(pattern="qr")
-async def qr_cmd(e):
-    try:
-        hexCode = e.text.split(" ")[1]
-    except IndexError:
-        await e.reply("Please provide the unique QR code.")
-        return
-    team = get_chat_team(e.chat_id)
-    if not team:
-        await e.reply(
-            "You have not Entered your team name yet. Use `/start` to set one."
-        )
-        return
-    scan = await add_new_qr_team_return_points(hexCode, team)
-    if scan == -1:
-        await e.reply("Sorry, that QR code is invalid.")
-
-    if scan == 10:
-        await e.reply(
-            "Congratulations! You are the first team to scan this QR code. You have been awarded **10** points."
-        )
-        return
-
-    if scan == 8:
-        await e.reply(
-            "Congo! You are the second team to scan this QR code. You have been awarded **8** points."
-        )
-        return
-
-    if scan == 6:
-        await e.reply(
-            "Good job! You are the third team to scan this QR code. You have been awarded **6** points."
-        )
-        return
-
-    if scan == 5:
-        await e.reply(
-            "Ouch! Top 3 teams have already scanned this QR code. You have been awarded **5** points."
-        )
-        return
