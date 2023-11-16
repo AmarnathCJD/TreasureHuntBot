@@ -63,7 +63,7 @@ def get_team_name(chat_id):
         return team["team_name"]
     else:
         for team in db["teams"].find():
-            if chat_id in team["members"]:
+            if chat_id in team.get("members", []):
                 return team["team_name"]
 
         return None

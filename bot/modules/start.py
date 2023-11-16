@@ -15,9 +15,8 @@ from .db import (
 )
 from .qr_events import onNewQR
 
-reset_qrs()
-purge_teams()
-
+# reset_qrs()
+# purge_teams()
 
 @new_cmd(pattern="start")
 async def start_cmd(e):
