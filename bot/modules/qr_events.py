@@ -14,6 +14,8 @@ clue_image_map = {
     10: "https://envs.sh/uJc.RB.jpg",
 }
 
+# (c) @RoseLoverX
+
 
 ten_points = [
     "<b>Congratulations!</b> You've just earned <b>10 points</b> for your team!",
