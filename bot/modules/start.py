@@ -29,6 +29,7 @@ async def start_cmd(e):
         return await onNewQR(e)
     msg = await e.reply(
         "Welcome to **QrQuest!**\n\nYour mission, should you choose to accept it, is to locate the hidden QR codes scattered across the campus. Keep your wits about you, as the locations of the codes are shrouded in mystery. To help you on your quest, be sure to stay tuned to Telegram for clues and hints.",
+        file="https://envs.sh/uop.jpg",
         buttons=[
             [Button.inline("Set Team Name", b"set_team_name")],
             [Button.inline("Help", b"help")],
@@ -40,6 +41,7 @@ async def start_cmd(e):
             "Welcome to **QrQuest!**\n\nYour mission, should you choose to accept it, is to locate the hidden QR codes scattered across the campus. Keep your wits about you, as the locations of the codes are shrouded in mystery. To help you on your quest, be sure to stay tuned to Telegram for clues and hints.\n\nYour team name is **{}**\n".format(
                 team
             ),
+            file="https://envs.sh/uop.jpg",
             buttons=[
                 [Button.inline("Check Points", b"check_points")],
                 [Button.inline("Help", b"help")],
