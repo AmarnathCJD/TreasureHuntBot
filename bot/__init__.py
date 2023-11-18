@@ -7,6 +7,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_ID = os.getenv("API_KEY")
 API_HASH = os.getenv("API_HASH")
+MASTER_ID = int(os.getenv("MASTER_ID", 0))
 
 if not all([BOT_TOKEN, API_ID, API_HASH]):
     raise Exception("Please set BOT_TOKEN, API_ID and API_HASH in .env file")

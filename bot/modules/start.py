@@ -1,13 +1,11 @@
 from bot.util import new_cmd, new_inline
+from bot import MASTER_ID as master
 from telethon import Button, events
 from .db import (
-    get_chat_team,
     get_team_points,
     add_new_team,
-    add_new_qr_team_return_points,
     get_team_name,
     reset_qrs,
-    reset_teams,
     is_team_exists,
     add_member_to_team,
     generate_leaderboard,
@@ -15,8 +13,14 @@ from .db import (
 )
 from .qr_events import onNewQR
 
-# reset_qrs()
-# purge_teams()
+@new_cmd(pattern="reset")
+async def reset_cmd(e):
+    if e.sender_id != master:
+        return await e.reply("You don't have permission to use this command.")
+    reset_qrs()
+    purge_teams()
+
+    await e.reply("Database reset successful.")
 
 
 @new_cmd(pattern="start")

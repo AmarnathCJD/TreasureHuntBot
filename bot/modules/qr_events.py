@@ -71,7 +71,7 @@ async def onNewQR(e):
             "You jumped ahead, Thats **cheating!!!**, First find the previous Clue."
         )
     elif scan == 10:
-        if (qr_type == 10):
+        if qr_type == 10:
             await m.respond("Congratulations! You are the awarded **A** WoW")
             return
         await m.edit(choice(ten_points), parse_mode="html")
@@ -79,7 +79,7 @@ async def onNewQR(e):
         media.spoiler = True
         await m.reply("**Here's The Clue**", file=media)
     elif scan == 8:
-        if (qr_type == 10):
+        if qr_type == 10:
             await m.respond("Congratulations! You are the awarded **B** WoW")
             return
         await m.edit(choice(eight_points), parse_mode="html")
@@ -87,16 +87,20 @@ async def onNewQR(e):
         media.spoiler = True
         await m.reply("**Here's The Clue**", file=media)
     elif scan == 6:
-        if (qr_type == 10):
-            await m.respond("Oops! You are the awarded **C** WoW, Better luck next time")
+        if qr_type == 10:
+            await m.respond(
+                "Oops! You are the awarded **C** WoW, Better luck next time"
+            )
             return
         await m.edit(choice(six_points), parse_mode="html")
         media = (await e.client._file_to_media(clue_image_map[qr_type]))[1]
         media.spoiler = True
         await m.reply("**Here's The Clue**", file=media)
     elif scan == 5:
-        if (qr_type == 10):
-            await m.respond("Aww, You finished last, What a shame! You are the awarded **D** WoW")
+        if qr_type == 10:
+            await m.respond(
+                "Aww, You finished last, What a shame! You are the awarded **D** WoW"
+            )
             return
         await m.edit(choice(five_points), parse_mode="html")
         media = (await e.client._file_to_media(clue_image_map[qr_type]))[1]
