@@ -13,6 +13,7 @@ from .db import (
 )
 from .qr_events import onNewQR
 
+
 @new_cmd(pattern="reset")
 async def reset_cmd(e):
     if e.sender_id != master:
@@ -108,25 +109,42 @@ async def contact_cmd(e):
 @new_cmd(pattern="race")
 async def current_leaderboard(e):
     lead = generate_leaderboard()
-    msg = "**Current Leaderboard:**\n\n"
+    msg = "<b>Current Leaderboard:</b>\n\n"
     q = 0
     gold_emoji = "🥇"
     silver_emoji = "🥈"
     bronze_emoji = "🥉"
 
     for x in list(lead):
-        msg += "**{}.** {} - ({}) ".format(q + 1, x["team_name"], x["points"])
+        msg += "<blockquote><b>{}.</b> {}".format(q + 1, x["team_name"])
         msg += (
-            gold_emoji + "\n"
+            gold_emoji + "</blockquote>"
             if q == 0
             else (
-                silver_emoji + "\n"
+                silver_emoji + "</blockquote>"
                 if q == 1
-                else (bronze_emoji + "\n" if q == 2 else "\n")
+                else (bronze_emoji + "\n" if q == 2 else "</blockquote>")
             )
         )
+        msg += "<code>QrPoints: {}</code>\n\n".format(x["points"])
         q += 1
-    await e.reply(msg)
+    if q == 0:
+        msg = "No teams found, Leaderboard is empty."
+    if len(msg) > 4094:
+        await e.reply("Leaderboard is too big to display, sending as a file.")
+        import io
+
+        with io.BytesIO(str.encode(msg)) as out_file:
+            out_file.name = "leaderboard.txt"
+            await e.client.send_file(
+                e.chat_id,
+                out_file,
+                force_document=True,
+                caption="Leaderboard",
+                reply_to=e.id,
+            )
+    else:
+        await e.reply(msg, parse_mode="html")
 
 
 @new_cmd(pattern="team")
@@ -149,6 +167,26 @@ async def set_team_name(e):
         team_name = await conv.get_response()
         already, lead = is_team_exists(team_name=team_name.text)
         if already:
+            msgq = await conv.send_message(
+                "Team name already exists, Do you want to join the team?",
+                buttons=[
+                    [
+                        Button.inline("Yes ✅", data="mehh"),
+                        Button.inline("No ❌", data="no_t"),
+                    ]
+                ],
+            )
+            response = await conv.wait_event(events.CallbackQuery)
+            if response.data != b"mehh":
+                await msgq.edit("OK, let's try again.", buttons=None)
+                new_name = await conv.get_response()
+                already, lead = is_team_exists(team_name=new_name.text)
+                if already:
+                    await conv.send_message("Team name already exists, Please restart.")
+                    return
+                await conv.send_message("Joined~.")
+                add_new_team(e.chat_id, new_name.text)
+                return
             await conv.send_message("Request sent to the Team Leader, Please wait.")
             await e.client.send_message(
                 lead,
@@ -173,8 +211,14 @@ async def set_team_name(e):
             await msg.delete()
             add_new_team(e.chat_id, team_name.text)
         else:
-            await conv.send_message("Oops, let's try again.")
-            set_team_name(e)
+            await conv.send_message("Ok, Enter your team name again.")
+            new_name = await conv.get_response()
+            already, lead = is_team_exists(team_name=new_name.text)
+            if already:
+                await conv.send_message("Team name already exists, Please restart.")
+                return
+            await conv.send_message("Joined~.")
+            add_new_team(e.chat_id, new_name.text)
 
 
 @new_inline(pattern="add_(.*)")
