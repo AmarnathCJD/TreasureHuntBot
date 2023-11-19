@@ -118,15 +118,14 @@ async def current_leaderboard(e):
     for x in list(lead):
         msg += "<blockquote><b>{}.</b> {}".format(q + 1, x["team_name"])
         msg += (
-            gold_emoji + "</blockquote>"
+            gold_emoji + " ({})".format(x["points"]) + "</blockquote>"
             if q == 0
             else (
-                silver_emoji + "</blockquote>"
+                silver_emoji + " ({})".format(x["points"]) + "</blockquote>"
                 if q == 1
-                else (bronze_emoji + "\n" if q == 2 else "</blockquote>")
+                else (bronze_emoji + " ({})".format(x["points"]) + "\n" if q == 2 else "({})".format(x["points"]) + "</blockquote>")
             )
         )
-        msg += "<code>QrPoints: {}</code>\n\n".format(x["points"])
         q += 1
     if q == 0:
         msg = "No teams found, Leaderboard is empty."
