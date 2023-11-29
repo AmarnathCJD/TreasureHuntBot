@@ -1,7 +1,8 @@
 from pymongo import MongoClient
+import os 
 
 mdb = MongoClient(
-    "mongodb+srv://user:user@cluster0.1vyhuye.mongodb.net/?retryWrites=true&w=majority"
+    os.environ.get("MONGODB_URI", "mongodb://localhost:27017/"),
 )
 
 db = mdb["mvh"]

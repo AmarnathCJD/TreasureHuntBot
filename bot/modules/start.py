@@ -109,6 +109,7 @@ async def contact_cmd(e):
 @new_cmd(pattern="race")
 async def current_leaderboard(e):
     lead = generate_leaderboard()
+    lead = sorted(lead, key=lambda x: x["points"], reverse=True)
     msg = "<b>Current Leaderboard:</b>\n\n"
     q = 0
     gold_emoji = "🥇"
@@ -123,7 +124,7 @@ async def current_leaderboard(e):
             else (
                 silver_emoji + " ({})".format(x["points"]) + "</blockquote>"
                 if q == 1
-                else (bronze_emoji + " ({})".format(x["points"]) + "\n" if q == 2 else "({})".format(x["points"]) + "</blockquote>")
+                else (bronze_emoji + " ({})".format(x["points"]) + "</blockquote>\n" if q == 2 else "({})".format(x["points"]) + "</blockquote>")
             )
         )
         q += 1
